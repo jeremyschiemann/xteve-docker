@@ -1,6 +1,3 @@
-# Taken from https://github.com/alturismo/xteve/blob/master/Dockerfile
-# adjusted to own needs
-
 FROM alpine:latest
 RUN apk update
 RUN apk upgrade
@@ -17,10 +14,16 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apk add --no-cache bash
 
-VOLUME /config
-VOLUME /root/.xteve
-VOLUME /tmp/xteve
 
 RUN wget https://github.com/xteve-project/xTeVe-Downloads/raw/master/xteve_linux_amd64.zip -O temp.zip; unzip temp.zip -d /usr/bin/; rm temp.zip
 
+VOLUME /home/xteve/.xteve
+
 EXPOSE ${XTEVE_PORT}
+
+HEALTHCHECK --interval=30s --start-period=30s --retries=3 --timeout=10s \
+  CMD curl -f http://localhost:${XTEVE_PORT}/ || exit 1
+
+
+ENTRYPOINT /xteve/xteve
+CMD ["-port=${XTEVE_PORT}"]
